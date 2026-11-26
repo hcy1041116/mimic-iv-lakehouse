@@ -15,8 +15,8 @@
 | SQL warehouse | 一個，大小限 2X-Small | 原文有寫 |
 | 對外網路 | 只能連少數信任的網域，清單沒公布 | 原文有寫 |
 | 從 PhysioNet 直接下載 | 大概不行，所以資料從本機上傳到 Volume | 我的推論 |
-| 自己建 catalog | 限制頁完全沒提 Unity Catalog。不行就用內建的 `workspace` catalog，config 改一行 | 要實測 |
-| Volume | 限制頁沒提；官方遷移指南有示範 `CREATE VOLUME` | 只看到摘要 |
+| 自己建 catalog | 可以：`CREATE CATALOG IF NOT EXISTS mimic_demo` 成功 | 實測（2026-11-26） |
+| Volume | 可以：建了 managed volume `mimic_demo.landing.mimic_iv_demo`，從網頁上傳兩個檔案，大小和本機一樣。`dbutils.fs.ls` 列出的路徑開頭是 `dbfs:/Volumes/...` | 實測（2026-11-26） |
 | Git folder | 限制頁沒提，也沒列在不支援的清單裡 | 要實測 |
 | 自己的雲端儲存體、外部位置 | 不支援「自訂 workspace 儲存位置」。外部位置限制頁沒提，大概練不到 | 前半原文有寫，後半是我的推論 |
 | 用途 | 只能非商業用途；作品集不算商業用途 | 前半原文有寫，後半是我的推論 |
@@ -25,9 +25,9 @@
 
 ## 第一次登入要實測的
 
-1. 在 serverless notebook 跑 `spark.version`、`import sys; sys.version`、`spark.conf.get("spark.sql.session.timeZone")`，確認上面兩條「前身 ADR-0007 寫的」。
-2. `CREATE CATALOG <名稱>`：成功就用自己的 catalog，失敗就改用 `workspace`。
-3. 建一個 Volume，上傳一個檔案。
+1. 在 serverless notebook 跑 `spark.version`、`import sys; sys.version`、`spark.conf.get("spark.sql.session.timeZone")`，確認上面兩條「前身 ADR-0007 寫的」。（2026-11-26 完成，見上表）
+2. `CREATE CATALOG <名稱>`：成功就用自己的 catalog，失敗就改用 `workspace`。（2026-11-26 完成：成功，用 `mimic_demo`）
+3. 建一個 Volume，上傳一個檔案。（2026-11-26 完成）
 4. 建 Git folder 連到 GitHub repo。要先有 repo（建 repo 要先問使用者）。private repo 需要 GitHub token，token 不能進 repo，也不能印出來。
 
 結果寫回這份文件，把「要實測」改成實測結果。

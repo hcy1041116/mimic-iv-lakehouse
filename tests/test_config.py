@@ -16,7 +16,7 @@ def test_local_table_is_delta_path():
 
 def test_databricks_table_is_three_part_name():
     cfg = load_config("databricks")
-    assert table_location(cfg, "silver.patient") == "workspace.silver.patient"
+    assert table_location(cfg, "silver.patient") == "mimic_demo.silver.patient"
 
 
 def test_both_environments_fix_timezone_to_utc():

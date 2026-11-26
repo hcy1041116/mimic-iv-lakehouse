@@ -14,5 +14,5 @@
 - 層只有 `bronze`、`silver`、`gold`、`quality`、`ops` 五種，其他寫法一律報錯。
 - 讀寫表都要經過 `src/common/spark.py` 的 `read_table`、`write_table`，不能直接寫 `spark.table()` 或寫死路徑。
 - 本機的表寫在 `output/lakehouse/<層>/<表>`，`output/` 不進 Git。測試改寫到暫存資料夾。
-- Databricks 的 catalog 先用內建的 `workspace`，第 0 步實測 `CREATE CATALOG` 成功的話，再改 `conf/databricks.toml` 一行。
+- Databricks 的 catalog 是 `mimic_demo`：Free Edition 可以自己 `CREATE CATALOG`（2026-11-26 實測）。換到不能建 catalog 的環境，就改用內建的 `workspace`，只要改 `conf/databricks.toml`。
 - 換平台時，多加一份 config。如果新平台存表的方式和這兩種都不同，`table_location` 要多一種寫法。
