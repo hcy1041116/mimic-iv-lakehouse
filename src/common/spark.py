@@ -6,7 +6,7 @@ local 由這裡自己建帶 Delta 的 session；databricks 直接用平台提供
 
 from pyspark.sql import DataFrame, SparkSession
 
-from common.config import Config, table_location
+from common.config import LAYERS, Config, table_location
 
 
 def get_spark(cfg: Config) -> SparkSession:
@@ -29,6 +29,14 @@ def get_spark(cfg: Config) -> SparkSession:
 
     spark.conf.set("spark.sql.session.timeZone", cfg.session_timezone)
     return spark
+
+
+def ensure_schemas(spark: SparkSession, cfg: Config) -> None:
+    """databricks：建好每一層的 schema。local 寫入時會自己建資料夾，不用做事。"""
+    if cfg.platform == "local":
+        return
+    for layer in LAYERS:
+        spark.sql(f"CREATE SCHEMA IF NOT EXISTS {cfg.catalog}.{layer}")
 
 
 def read_table(spark: SparkSession, cfg: Config, logical_name: str) -> DataFrame:

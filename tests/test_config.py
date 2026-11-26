@@ -1,6 +1,7 @@
 import pytest
 
 from common.config import REPO_ROOT, load_config, table_location
+from common.spark import ensure_schemas
 
 
 def test_local_paths_are_relative_to_repo_root():
@@ -28,3 +29,28 @@ def test_both_environments_fix_timezone_to_utc():
 def test_bad_logical_name_is_rejected(name):
     with pytest.raises(ValueError):
         table_location(load_config("local"), name)
+
+
+class RecordingSpark:
+    """只記下收到的 SQL，用來測 Databricks 端會下哪些指令。"""
+
+    def __init__(self):
+        self.statements = []
+
+    def sql(self, statement):
+        self.statements.append(statement)
+
+
+def test_ensure_schemas_creates_every_layer_on_databricks():
+    spark = RecordingSpark()
+    ensure_schemas(spark, load_config("databricks"))
+    assert spark.statements == [
+        f"CREATE SCHEMA IF NOT EXISTS mimic_demo.{layer}"
+        for layer in ("bronze", "silver", "gold", "quality", "ops")
+    ]
+
+
+def test_ensure_schemas_does_nothing_locally():
+    spark = RecordingSpark()
+    ensure_schemas(spark, load_config("local"))
+    assert spark.statements == []
