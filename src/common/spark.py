@@ -38,9 +38,18 @@ def read_table(spark: SparkSession, cfg: Config, logical_name: str) -> DataFrame
     return spark.read.table(location)
 
 
-def write_table(df: DataFrame, cfg: Config, logical_name: str, mode: str = "overwrite") -> None:
+def write_table(
+    df: DataFrame,
+    cfg: Config,
+    logical_name: str,
+    mode: str = "overwrite",
+    replace_where: str | None = None,
+) -> None:
+    """寫成 Delta 表。給了 `replace_where` 時，只取代符合條件的那些列，例如同一個批次。"""
     location = table_location(cfg, logical_name)
     writer = df.write.format("delta").mode(mode)
+    if replace_where is not None:
+        writer = writer.option("replaceWhere", replace_where)
     if cfg.platform == "local":
         writer.save(location)
     else:

@@ -21,3 +21,15 @@ def test_timestamp_ntz_round_trip_through_delta(spark, cfg):
 
     assert back.schema["admittime"].dataType == TimestampNTZType()
     assert back.collect()[0]["admittime"] == datetime(2140, 10, 22, 22, 4)
+
+
+def test_replace_where_only_replaces_matching_rows(spark, cfg):
+    def batch(batch_id, n):
+        return spark.range(n).withColumn("_batch_id", F.lit(batch_id))
+
+    write_table(batch("batch_001", 3), cfg, "ops.replace_test", replace_where="_batch_id = 'batch_001'")
+    write_table(batch("batch_001", 3), cfg, "ops.replace_test", replace_where="_batch_id = 'batch_001'")
+    write_table(batch("batch_002", 2), cfg, "ops.replace_test", replace_where="_batch_id = 'batch_002'")
+
+    rows = read_table(spark, cfg, "ops.replace_test").groupBy("_batch_id").count().collect()
+    assert {r["_batch_id"]: r["count"] for r in rows} == {"batch_001": 3, "batch_002": 2}
