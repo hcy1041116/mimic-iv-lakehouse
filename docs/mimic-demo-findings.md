@@ -57,4 +57,4 @@ python3 -I scripts/explore/fhir_mapping_checks.py data/mimic-iv-demo-2.2/hosp da
 
 ## 日期
 
-所有日期都被平移到 2110–2201 年（`anchor_year` 介於 2110 和 2201），每位病人平移的量不同。`anchor_year_group`（例如 `2011 - 2013`）才是這位病人真實就醫的年代區間。
+所有日期都被平移到 2110–2202 年，每位病人平移的量不同：`anchor_year` 介於 2110 和 2201，住院和處方的時間在 2110–2201，檢驗的 `charttime`、`storetime` 到 2202。`anchor_year_group`（例如 `2011 - 2013`）才是這位病人真實就醫的年代區間。
