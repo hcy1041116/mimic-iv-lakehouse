@@ -12,3 +12,10 @@ metastore_db/
 .agents/
 .claude/
 skills-lock.json
+
+# 和 agent 合作的規則、個人筆記，不公開
+AGENTS.md
+CLAUDE.md
+docs/agents/
+docs/specs/
+docs/background.md
