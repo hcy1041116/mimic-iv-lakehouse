@@ -1,0 +1,8 @@
+data/
+.venv/
+learning/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+spark-warehouse/
+metastore_db/
