@@ -1,0 +1,6 @@
+# Databricks Free Edition：表存成 Unity Catalog 的受管理表 <catalog>.<layer>.<table>
+# catalog 先用內建的 workspace；第 0 步 CREATE CATALOG 成功的話再改
+platform = "databricks"
+source_root = "/Volumes/workspace/landing/mimic_iv_demo"
+catalog = "workspace"
+session_timezone = "UTC"

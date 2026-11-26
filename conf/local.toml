@@ -1,0 +1,6 @@
+# 本機：表存成 lakehouse_root 底下的 Delta 路徑
+# 相對路徑以 repo 根目錄為準
+platform = "local"
+source_root = "data"
+lakehouse_root = "output/lakehouse"
+session_timezone = "UTC"

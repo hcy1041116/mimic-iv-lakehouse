@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 spark-warehouse/
+output/
 metastore_db/
 
 # 本機的 agent skills，不進版控
