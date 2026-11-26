@@ -7,7 +7,9 @@
 | 運算 | 只有 serverless，不能自訂 cluster | 原文有寫 |
 | 額度 | 每天有運算額度，沒有公布數字。超過的話當天停用（極端時整個月停用），資料和設定不會刪 | 原文有寫 |
 | RDD、SparkContext | serverless 不支援，只能用 DataFrame API | 前身 ADR-0007 寫的，這次沒重新確認 |
-| Python | 3.12（serverless environment 4、5） | 前身 ADR-0007 寫的，這次沒重新確認 |
+| Python | 3.12.3，和本機一樣 | 實測（2026-11-26，serverless notebook 的 `sys.version`） |
+| Spark | 4.2.0，和本機的 PySpark 一樣 | 實測（2026-11-26，`spark.version`） |
+| session 時區預設值 | `Etc/UTC`，和 `UTC` 是同一個時區 | 實測（2026-11-26）。程式還是會明確設成 UTC（ADR-0003） |
 | Job | 可以用，整個帳號同時最多 5 個 job task | 原文有寫 |
 | Lakeflow pipeline | 每種 pipeline 同時只能有一個在跑 | 原文有寫 |
 | SQL warehouse | 一個，大小限 2X-Small | 原文有寫 |

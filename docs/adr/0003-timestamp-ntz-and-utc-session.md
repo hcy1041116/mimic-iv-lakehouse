@@ -2,7 +2,7 @@
 
 - 狀態：accepted（2026-11-26）
 
-MIMIC 的時間字串沒有時區，例如 `2140-10-22 22:04:00`。Spark 一般的 `TIMESTAMP` 型別代表「某個時刻」，把沒有時區的字串轉進來時，會用 session 時區去解讀。本機 Spark 預設的 session 時區是 `Asia/Taipei`（前身實測，見前身的 LESSONS.md），Databricks 預設是 UTC（前身 ADR-0007 寫的，這次沒有重新確認）。不固定的話，同一份程式在兩邊算出來的日期可能差一天。
+MIMIC 的時間字串沒有時區，例如 `2140-10-22 22:04:00`。Spark 一般的 `TIMESTAMP` 型別代表「某個時刻」，把沒有時區的字串轉進來時，會用 session 時區去解讀。本機 Spark 預設的 session 時區是 `Asia/Taipei`（前身實測，見前身的 LESSONS.md），Databricks Free Edition 預設是 `Etc/UTC`（2026-11-26 實測）。不固定的話，同一份程式在兩邊算出來的日期可能差一天。
 
 ## 考慮過的選項
 
