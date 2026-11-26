@@ -2,7 +2,7 @@
 
 - 狀態：accepted（2026-11-26）
 
-前身 `fhir-lakehouse` 用 Synthea 產生 FHIR 資料，卡在三件事：Synthea 不是 FHIR 伺服器，版本、更新時間、增量都要另外寫模擬器去假造；資料太乾淨，error 級的品質規則全部是 0 筆；台灣醫院做資料工程，實際碰到的來源比較可能是醫院系統（HIS）的資料表，而不是 FHIR（推論，依據見 [background.md](../background.md)）。所以這個專案改用 MIMIC-IV Clinical Database Demo 2.2 的 `hosp` 資料表當來源。它是美國一家教學醫院去識別化後的真實病歷，以醫院系統匯出的關聯式表發布，100 位病人，ODbL 開放授權，不用申請。同一批病人有官方轉好的 MIMIC-IV on FHIR Demo 2.1.0，之後做「醫院資料表 → FHIR」時拿來對答案。實測結果見 [mimic-demo-findings.md](../mimic-demo-findings.md)。
+前身 `fhir-lakehouse` 用 Synthea 產生 FHIR 資料，卡在三件事：Synthea 不是 FHIR 伺服器，版本、更新時間、增量都要另外寫模擬器去假造；資料太乾淨，error 級的品質規則全部是 0 筆；台灣醫院做資料工程，實際碰到的來源比較可能是醫院系統（HIS）的資料表，而不是 FHIR（推論。台灣醫院轉 FHIR 的理由都和跨院、跨系統有關，見 [CIO Taiwan 2024-11-01](https://www.cio.com.tw/wfhk-to-build-three-major-fhir-centers-to-build-cross-yard-data-center/)）。所以這個專案改用 MIMIC-IV Clinical Database Demo 2.2 的 `hosp` 資料表當來源。它是美國一家教學醫院去識別化後的真實病歷，以醫院系統匯出的關聯式表發布，100 位病人，ODbL 開放授權，不用申請。同一批病人有官方轉好的 MIMIC-IV on FHIR Demo 2.1.0，之後做「醫院資料表 → FHIR」時拿來對答案。實測結果見 [mimic-demo-findings.md](../mimic-demo-findings.md)。
 
 ## 考慮過的選項
 
@@ -19,7 +19,7 @@
 - **只有 100 人。** 檢驗有 10 萬多筆，夠用來展示管線；但看不出效能問題。用 Spark 和 Databricks 是為了展示目標職缺要的技能，設計上要能放大到完整版的規模（約展示版的 3,000 倍）。要測效能，之後可以把展示版的病人複製成很多份。
 - **版本和時間是資料本來就有的，不用模擬。** 同一位病人每次住院都記一次婚姻、種族、保險，值會變；檢驗有採檢時間 `charttime` 和結果存入時間 `storetime`，可以做「結果晚到」的情境。但展示版是一次發布的靜態資料，沒有之後的更新。要做增量，仍要自己把資料切成幾批，例如照 `admittime` 或 `storetime` 切；真實的醫院系統靠的是表上的修改時間欄位，或資料庫的異動紀錄。怎麼切之後再決定。
 - **日期被平移到 2110–2202 年，每位病人平移的量不同。** 「日期不能在未來」這類規則不適用；跨病人比較日曆時間沒有意義。
-- **前身的決定。** 10 月 grill 定案的五條原則不變，寫在 AGENTS.md 的「10 月定案」，只依 CSV 和 MIMIC 調整細節，偏離要先問。五條是：Bronze 原樣保存加中繼欄位、來源 id 當鍵、error／warn 和 severity、版本比較順序、先檢查品質再選版本。前身 ADR 裡的其他做法預計保留，用到時依新資料確認，再寫成本專案的 ADR：
+- **前身的決定。** 10 月 grill 定案的五條原則不變，只依 CSV 和 MIMIC 調整細節，要偏離得先確認。五條是：Bronze 原樣保存加中繼欄位、來源 id 當鍵、error／warn 和 severity、版本比較順序、先檢查品質再選版本。前身 ADR 裡的其他做法預計保留，用到時依新資料確認，再寫成本專案的 ADR：
   - 邏輯表名加各環境 config：程式只寫邏輯表名，換平台只改 config
   - Spark session 時區固定 UTC：本機 Spark 預設 `Asia/Taipei`，Databricks 預設 UTC，不固定的話，同一份程式在兩邊取出的日期可能差一天
   - Silver 依版本 MERGE，Gold 全量重建
