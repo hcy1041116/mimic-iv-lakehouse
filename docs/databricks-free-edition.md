@@ -21,6 +21,7 @@
 | Git folder 裡 notebook 的工作目錄 | notebook 所在的資料夾，所以 `Path.cwd().parent / "src"` 找得到程式 | 實測（2026-11-27，`notebooks/run_bronze.py`） |
 | 程式設定 session 時區 | serverless 允許 `spark.conf.set("spark.sql.session.timeZone", "UTC")` | 實測（2026-11-27） |
 | Delta 寫進 Unity Catalog | `saveAsTable` 加 `replaceWhere` 可以建新表，同一批重跑時只取代那一批，筆數不變 | 實測（2026-11-27，跑兩次都是 100 筆和 275 筆） |
+| `TIMESTAMP_NTZ`、`try_cast` | 都可以用：`silver.admission` 的時間欄位是 `TimestampNTZType`，275 筆、warn 20 筆，和本機一樣 | 實測（2026-11-27） |
 | 自己的雲端儲存體、外部位置 | 不支援「自訂 workspace 儲存位置」。外部位置限制頁沒提，大概練不到 | 前半原文有寫，後半是我的推論 |
 | 用途 | 只能非商業用途；作品集不算商業用途 | 前半原文有寫，後半是我的推論 |
 | 帳號 | 長期不用可能被刪，沒有 SLA | 原文有寫 |
