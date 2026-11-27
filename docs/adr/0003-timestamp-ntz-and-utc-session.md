@@ -16,5 +16,5 @@ MIMIC 的時間字串沒有時區，例如 `2140-10-22 22:04:00`。Spark 一般�
 ## 後果
 
 - 本機實測：`TIMESTAMP_NTZ` 寫進 Delta 再讀出來，型別和值都不變（`tests/test_smoke_delta.py`）。
-- Databricks 上能不能寫，第 3 步實測（我的推論是可以）。
+- Databricks 上能不能寫，第 4 步做 `silver.admission` 時實測（我的推論是可以）。第 3 步的 Bronze 全是字串，還沒用到這個型別。
 - 官方 FHIR 版一律加上 `-04:00`。之後做 FHIR 轉換時，要在那一層決定加不加時區，Silver 不加。
