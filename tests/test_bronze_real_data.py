@@ -6,7 +6,6 @@
 import gzip
 from pathlib import Path
 
-import pytest
 from pyspark.sql import functions as F
 
 from common.spark import read_table
@@ -17,13 +16,6 @@ def data_lines(path: Path) -> int:
     """檔案的行數減掉表頭。"""
     with gzip.open(path, "rt", newline="") as f:
         return sum(1 for _ in f) - 1
-
-
-@pytest.fixture(scope="module")
-def real_cfg(cfg):
-    if not all((Path(cfg.source_root) / rel).exists() for rel in SOURCE_FILES.values()):
-        pytest.skip("沒有下載 MIMIC-IV 展示版資料")
-    return cfg
 
 
 def test_bronze_count_equals_source_lines_and_rerun_is_stable(spark, real_cfg):
