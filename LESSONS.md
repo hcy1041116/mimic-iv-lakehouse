@@ -20,3 +20,11 @@
   - 把 Git folder 當成唯讀：要試東西，在 Git folder 外面另外開一本 notebook。
   - Pull 之前先看 Git 視窗；如果列出自己不記得改過的檔案，先處理掉再 Pull。
   - 真的弄亂了，就刪掉 Git folder 重建。程式在 GitHub 上，表在 catalog 裡，Volume 裡的檔案也不受影響。
+
+## 2026-11-27 `F.col('rank' == 1)`：括號包錯位置
+
+- 現象：`where(F.col('rank' == 1))` 一執行就報錯，訊息埋在一大串 Java 堆疊的最後：`Method col([class java.lang.Boolean]) does not exist`。
+- 原因：Python 先算括號裡面的 `'rank' == 1`。字串和數字比較的結果是 `False`，所以實際上變成 `F.col(False)`。
+- 做法：
+  - `F.col("欄位名")` 的括號裡只放欄位名，比較寫在括號外面：`F.col("rank") == 1`。
+  - 看 PySpark 的錯誤時，直接找最後幾行 `E` 開頭的訊息。`java.lang.Boolean` 這類型別名稱，就是在告訴你函式收到了什麼。
