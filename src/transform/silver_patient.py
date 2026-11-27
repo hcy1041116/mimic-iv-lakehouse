@@ -5,7 +5,8 @@
     uv run pytest tests/test_silver_patient.py
 """
 
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, Window
+from pyspark.sql import functions as F
 
 # silver.patient 的欄位，照這個順序
 PATIENT_COLUMNS = [
@@ -39,7 +40,12 @@ def select_latest_admission(admissions: DataFrame) -> DataFrame:
         - 整列照取：最後一次住院的婚姻是空白，結果就是空白，不往前面的住院找值。
         - 同一位病人有兩次住院的 `admittime` 一樣時，挑哪一筆都可以（已知限制，真實資料 0 筆）。
     """
-    raise NotImplementedError("由 HCY 實作")
+    rank_in_admittime = Window.partitionBy("subject_id").orderBy(F.col("admittime").desc())
+    return (
+        admissions.withColumn("_rank", F.row_number().over(rank_in_admittime))
+        .where(F.col("_rank") == 1)
+        .drop("_rank")
+    )
 
 
 def build_patient(patients: DataFrame, latest_admissions: DataFrame) -> DataFrame:
@@ -55,4 +61,7 @@ def build_patient(patients: DataFrame, latest_admissions: DataFrame) -> DataFram
         - `marital_status`、`race`、`language`：取自最後一次住院
         每位通過檢查的病人都要有一列；沒有任何住院的病人也留著，那三欄是空白。
     """
-    raise NotImplementedError("由 HCY 實作")
+    # 兩邊都有 _batch_id：先丟掉住院表那一個，join 之後才不會有兩個同名的欄位
+    # left join：沒有任何住院的病人也留著，婚姻、種族、語言是空白
+    joined = patients.join(latest_admissions.drop("_batch_id"), on="subject_id", how="left")
+    return joined.select(PATIENT_COLUMNS)
