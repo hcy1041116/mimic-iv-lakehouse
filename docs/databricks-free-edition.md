@@ -22,7 +22,7 @@
 | 程式設定 session 時區 | serverless 允許 `spark.conf.set("spark.sql.session.timeZone", "UTC")` | 實測（2026-11-27） |
 | Delta 寫進 Unity Catalog | `saveAsTable` 加 `replaceWhere` 可以建新表，同一批重跑時只取代那一批，筆數不變 | 實測（2026-11-27，跑兩次都是 100 筆和 275 筆） |
 | `TIMESTAMP_NTZ`、`try_cast` | 都可以用：`silver.admission` 的時間欄位是 `TimestampNTZType`，275 筆、warn 20 筆，和本機一樣 | 實測（2026-11-27） |
-| Git folder 裡的 notebook 被自動改寫 | 執行時 Databricks 會拿掉 notebook 最後的換行，並在 `pyproject.toml` 寫入 `[tool.databricks.environment] environment_version = '6'`，所以 repo 裡的檔案就存成這個樣子（LESSONS 2026-11-27） | 實測（2026-11-27） |
+| Git folder 裡的 notebook 被自動改寫 | 執行時 Databricks 會拿掉 notebook 最後的換行，並在 `pyproject.toml` 寫入 `[tool.databricks.environment] environment_version = '6'`，所以 repo 裡的檔案就存成這個樣子（LESSONS 2026-11-27）。改完之後再執行，Git 視窗顯示 0 個修改 | 實測（2026-11-27） |
 | serverless 環境版本 | 6 | 實測（2026-11-27，Databricks 自己寫進 `pyproject.toml` 的值） |
 | 自己的雲端儲存體、外部位置 | 不支援「自訂 workspace 儲存位置」。外部位置限制頁沒提，大概練不到 | 前半原文有寫，後半是我的推論 |
 | 用途 | 只能非商業用途；作品集不算商業用途 | 前半原文有寫，後半是我的推論 |
