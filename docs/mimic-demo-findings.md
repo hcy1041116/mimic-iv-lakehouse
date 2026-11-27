@@ -54,6 +54,7 @@ python3 -I scripts/explore/fhir_mapping_checks.py data/mimic-iv-demo-2.2/hosp da
 - **住院類別可能對錯了**：`admission_type` 對到 `Encounter.class` 時，`URGENT` 38 筆和 `ELECTIVE` 13 筆被標成 `AMB`（門診）。例如 10003400 的 `23559586` 住了 29 天、在院內過世，class 是 `AMB`。依 HL7 v3 ActCode，住院是 `IMP`。這是我們依代碼定義的判斷，官方可能有別的理由。
 - **一樣沒有 `meta.lastUpdated`**，`meta` 裡只有 `profile`。
 - **姓名是佔位字**，例如 `Patient_10003400`。
+- **種族換成了美國 OMB 類別**（2026-11-27 實測）：FHIR Patient 的 `us-core-race` 不是原始值，而是對到的類別。例如 `HISPANIC/LATINO - CUBAN`、`PORTUGUESE`、`WHITE - BRAZILIAN` 都變成 `White`，`BLACK/CAPE VERDEAN` 變成 `Black or African American`，`UNKNOWN`、`OTHER`、`UNABLE TO OBTAIN` 變成 `unknown`，`PATIENT DECLINED TO ANSWER` 變成 `asked but unknown`。婚姻則是一對一換成代碼：`MARRIED` → `M`、`SINGLE` → `S`、`DIVORCED` → `D`、`WIDOWED` → `W`，空白 → `UNK`。
 
 ## 日期
 
