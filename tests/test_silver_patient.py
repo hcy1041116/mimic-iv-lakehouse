@@ -5,6 +5,7 @@
   最後一次（2140-10-22）的 hadm_id 反而最小，而且不是排在最後面的那一列
 - 10000002：住院 2 次，最後一次的婚姻是空白
 - 10000003：只住院 1 次
+- 10000004：沒有任何住院（只在病人表）
 """
 
 from datetime import date, datetime
@@ -38,6 +39,7 @@ PATIENTS = [
     ("10000001", "F", 52, 2140, "2011 - 2013", None, "batch_001"),
     ("10000002", "M", 60, 2150, "2014 - 2016", date(2152, 1, 1), "batch_001"),
     ("10000003", "F", 70, 2160, "2017 - 2019", None, "batch_001"),
+    ("10000004", "M", 45, 2170, "2017 - 2019", None, "batch_001"),
 ]
 
 # build_patient 的測試不依賴 select_latest_admission：直接給「每人最後一次住院」
@@ -99,7 +101,13 @@ def test_patient_columns_in_order(patients, latest):
 
 
 def test_one_row_per_patient_in_silver_patient(patients, latest):
-    assert build_patient(patients, latest).count() == 3
+    assert build_patient(patients, latest).count() == 4
+
+
+def test_patient_without_admission_is_kept_with_blank_demographics(patients, latest):
+    row = by_subject(build_patient(patients, latest))["10000004"]
+    assert (row["gender"], row["anchor_age"]) == ("M", 45)
+    assert (row["marital_status"], row["race"], row["language"]) == (None, None, None)
 
 
 def test_demographics_come_from_latest_admission(patients, latest):
