@@ -12,7 +12,15 @@ from pyspark.sql import functions as F
 from common.config import Config
 from common.spark import read_table, write_table
 from ingest.bronze import CORRUPT_COLUMN
-from quality.rules import ERROR, WARN, admission_rules, apply_rules, source_columns
+from quality.rules import (
+    ERROR,
+    WARN,
+    admission_rules,
+    apply_rules,
+    patient_rules,
+    source_columns,
+)
+from transform.silver_patient import build_patient, select_latest_admission
 
 ADMISSION_TIMESTAMPS = ["admittime", "dischtime", "deathtime", "edregtime", "edouttime"]
 DROPPED_METADATA = ["_corrupt_record", "_source_file", "_ingested_at"]
@@ -45,19 +53,14 @@ def write_rejects(rejects: DataFrame, cfg: Config, source_table: str, batch_id: 
     )
 
 
-def build_silver_admission(spark: SparkSession, cfg: Config, batch_id: str) -> dict[str, int]:
-    """bronze.admissions 的這一批 → 品質檢查 → silver.admission。回傳各階段的筆數。
+def summarize(
+    spark: SparkSession, cfg: Config, bronze: DataFrame, source_table: str, batch_id: str, silver_table: str
+) -> dict[str, int]:
+    """各階段的筆數。
 
     `rejected_records` 從 reject 表另外數（被 error 擋下的不同資料有幾筆），
     所以「bronze = silver + rejected_records + duplicates_removed」是真的核對，不是用減法湊出來的。
     """
-    source_table = "bronze.admissions"
-    bronze = read_table(spark, cfg, source_table).where(F.col("_batch_id") == batch_id)
-    passed, rejects = apply_rules(bronze, admission_rules(), source_table=source_table, key="hadm_id")
-
-    write_rejects(rejects, cfg, source_table, batch_id)
-    write_table(cast_admissions(passed), cfg, "silver.admission")
-
     saved = read_table(spark, cfg, "quality.reject").where(
         (F.col("batch_id") == batch_id) & (F.col("source_table") == source_table)
     )
@@ -68,7 +71,33 @@ def build_silver_admission(spark: SparkSession, cfg: Config, batch_id: str) -> d
         "duplicates_removed": bronze_rows
         - bronze.dropDuplicates(source_columns(bronze) + [CORRUPT_COLUMN]).count(),
         "rejected_records": errors.select("record").distinct().count(),
-        "silver": read_table(spark, cfg, "silver.admission").count(),
+        "silver": read_table(spark, cfg, silver_table).count(),
         "error_rejects": errors.count(),
         "warn_rejects": saved.where(F.col("severity") == WARN).count(),
     }
+
+
+def build_silver_admission(spark: SparkSession, cfg: Config, batch_id: str) -> dict[str, int]:
+    """bronze.admissions 的這一批 → 品質檢查 → silver.admission。回傳各階段的筆數。"""
+    source_table = "bronze.admissions"
+    bronze = read_table(spark, cfg, source_table).where(F.col("_batch_id") == batch_id)
+    passed, rejects = apply_rules(bronze, admission_rules(), source_table=source_table, key="hadm_id")
+
+    write_rejects(rejects, cfg, source_table, batch_id)
+    write_table(cast_admissions(passed), cfg, "silver.admission")
+    return summarize(spark, cfg, bronze, source_table, batch_id, "silver.admission")
+
+
+def build_silver_patient(spark: SparkSession, cfg: Config, batch_id: str) -> dict[str, int]:
+    """bronze.patients 的這一批 → 品質檢查 → 加上最後一次住院的人口資料 → silver.patient。
+
+    要先跑 build_silver_admission：最後一次住院是從 silver.admission 挑的（先檢查品質，再挑最新）。
+    """
+    source_table = "bronze.patients"
+    bronze = read_table(spark, cfg, source_table).where(F.col("_batch_id") == batch_id)
+    passed, rejects = apply_rules(bronze, patient_rules(), source_table=source_table, key="subject_id")
+
+    write_rejects(rejects, cfg, source_table, batch_id)
+    latest = select_latest_admission(read_table(spark, cfg, "silver.admission"))
+    write_table(build_patient(cast_patients(passed), latest), cfg, "silver.patient")
+    return summarize(spark, cfg, bronze, source_table, batch_id, "silver.patient")

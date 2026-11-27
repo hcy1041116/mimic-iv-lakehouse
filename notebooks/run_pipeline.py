@@ -25,7 +25,7 @@ if str(SRC) not in sys.path:
 from common.config import load_config
 from common.spark import ensure_schemas, get_spark, read_table
 from ingest.bronze import CORRUPT_COLUMN, SOURCE_FILES, load_bronze
-from transform.silver import build_silver_admission
+from transform.silver import build_silver_admission, build_silver_patient
 
 BATCH_ID = "batch_001"
 
@@ -72,6 +72,21 @@ assert ok
 
 # 時間欄位的型別：要是 TimestampNTZType
 print("admittime 型別：", read_table(spark, cfg, "silver.admission").schema["admittime"].dataType)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 品質檢查 → silver.patient（人口資料取自最後一次住院）
+
+# COMMAND ----------
+
+patient_counts = build_silver_patient(spark, cfg, BATCH_ID)
+print(patient_counts)
+
+c = patient_counts
+ok = c["bronze"] == c["silver"] + c["rejected_records"] + c["duplicates_removed"]
+print("OK" if ok else "不符", " bronze = silver + rejected_records + duplicates_removed")
+assert ok
 
 # COMMAND ----------
 
