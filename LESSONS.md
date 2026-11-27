@@ -28,3 +28,15 @@
 - 做法：
   - `F.col("欄位名")` 的括號裡只放欄位名，比較寫在括號外面：`F.col("rank") == 1`。
   - 看 PySpark 的錯誤時，直接找最後幾行 `E` 開頭的訊息。`java.lang.Boolean` 這類型別名稱，就是在告訴你函式收到了什麼。
+
+## 2026-11-27 Databricks 執行 Git folder 裡的 notebook，會自己改檔案
+
+- 現象：在 Git folder 裡什麼都沒改，只按了 Run all，Git 視窗就列出兩個「已修改」的檔案。之後 Pull 時，`run_pipeline.py` 就 conflict。
+  - `notebooks/run_pipeline.py`：檔案最後的換行被拿掉了（diff 顯示 `\ No newline at end of file`）
+  - `pyproject.toml`：多了一段 `[tool.databricks.environment]`、`environment_version = '6'`，最後也沒有換行
+- 原因：Databricks 用自己的格式重新存 notebook，而且會把 serverless 的環境版本記進 Git folder 裡的 `pyproject.toml`。Databricks 檔案的 version history 是 workspace 自己的存檔紀錄，和 Git 無關：被改寫後的內容就是它的起點（`pyproject.toml` 的 version history 甚至是空的，只有 Pending version），看不到 GitHub 原本的版本。要知道和 GitHub 差在哪，只能看 Git 視窗的 diff。上一條「改過 Git folder 裡的 notebook，Pull 時會 conflict」，很可能也是這個原因。
+- 做法：
+  - repo 裡的檔案直接存成 Databricks 存出來的樣子：`notebooks/` 底下的檔案最後不加換行；`pyproject.toml` 寫好 `environment_version = '6'`，最後也不加換行。這樣執行完不會再出現「已修改」。
+  - 順便把 serverless 的環境版本固定在 repo 裡，別人重跑時用的是同一版。
+  - 用工具整個重寫這些檔案時，要記得最後不能加換行。
+  - Pull 前還是先看一眼 Git 視窗，有自己沒改的修改就先 Discard。
