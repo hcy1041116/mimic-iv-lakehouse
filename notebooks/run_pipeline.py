@@ -1,11 +1,11 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Bronze：在 Databricks 上跑
+# MAGIC # MVP 管線：在 Databricks 上跑
 # MAGIC
 # MAGIC 用 Git folder 打開這本 notebook，運算資源選 **Serverless**，按 **Run all**。
 # MAGIC
 # MAGIC - 讀的是 `conf/databricks.toml` 指定的 Volume：`mimic_demo.landing.mimic_iv_demo`
-# MAGIC - 寫進 `mimic_demo.bronze.patients`、`mimic_demo.bronze.admissions`
+# MAGIC - 寫進 `mimic_demo` 底下的 `bronze`、`quality`、`silver`
 # MAGIC - 程式和本機跑的是同一份 `src/`；這本 notebook 只負責把它接起來
 
 # COMMAND ----------
@@ -25,6 +25,7 @@ if str(SRC) not in sys.path:
 from common.config import load_config
 from common.spark import ensure_schemas, get_spark, read_table
 from ingest.bronze import CORRUPT_COLUMN, SOURCE_FILES, load_bronze
+from transform.silver import build_silver_admission
 
 BATCH_ID = "batch_001"
 
@@ -32,6 +33,11 @@ cfg = load_config("databricks")
 spark = get_spark(cfg)
 ensure_schemas(spark, cfg)
 print("session 時區：", spark.conf.get("spark.sql.session.timeZone"))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Bronze
 
 # COMMAND ----------
 
@@ -50,4 +56,23 @@ for table, relative in SOURCE_FILES.items():
 
 # COMMAND ----------
 
-display(read_table(spark, cfg, "bronze.admissions").limit(5))
+# MAGIC %md
+# MAGIC ## 品質檢查 → silver.admission
+
+# COMMAND ----------
+
+silver_counts = build_silver_admission(spark, cfg, BATCH_ID)
+print(silver_counts)
+
+# 核對：Bronze = Silver + 被 error 擋下的資料 + 去重掉的完全重複列
+c = silver_counts
+ok = c["bronze"] == c["silver"] + c["rejected_records"] + c["duplicates_removed"]
+print("OK" if ok else "不符", " bronze = silver + rejected_records + duplicates_removed")
+assert ok
+
+# 時間欄位的型別：要是 TimestampNTZType
+print("admittime 型別：", read_table(spark, cfg, "silver.admission").schema["admittime"].dataType)
+
+# COMMAND ----------
+
+display(read_table(spark, cfg, "quality.reject").groupBy("source_table", "rule", "severity").count())
