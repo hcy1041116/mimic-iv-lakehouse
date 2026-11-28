@@ -40,3 +40,9 @@
   - 順便把 serverless 的環境版本固定在 repo 裡，別人重跑時用的是同一版。
   - 用工具整個重寫這些檔案時，要記得最後不能加換行。
   - Pull 前還是先看一眼 Git 視窗，有自己沒改的修改就先 Discard。
+
+## 2026-11-28 Free Edition 出現「Attached cluster is terminated」
+
+- 現象：隔一段時間再打開 notebook 按 Run all，跳出「This notebook is attached to a cluster which has terminated, and you do not have permission to restart it」。
+- 原因：serverless 的運算資源閒置一段時間會自動收掉，notebook 還記得上一次用的那一台（我的推論）。訊息裡的「cluster」是運算資源的通稱，Free Edition 只有 serverless，也不收費（原文有寫）。
+- 做法：選「attach to a different compute resource」，或從右上角的運算資源選單重新選 **Serverless**，再按 Run all。如果選單裡沒有 Serverless，或出現額度相關的訊息，就是當天的額度用完了，隔天再跑（原文有寫：資料和設定不會被刪）。
