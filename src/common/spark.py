@@ -22,6 +22,8 @@ def get_spark(cfg: Config) -> SparkSession:
                 "spark.sql.catalog.spark_catalog",
                 "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             )
+            # 終端機的進度條會覆蓋同一行的輸出，本機關掉
+            .config("spark.ui.showConsoleProgress", "false")
         )
         spark = configure_spark_with_delta_pip(builder).getOrCreate()
     else:
