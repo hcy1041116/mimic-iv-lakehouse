@@ -14,4 +14,11 @@
 --   - 沒有任何住院的病人也要有一列，admission_count 是 0
 --
 -- 測試：uv run pytest tests/test_gold.py
+WITH cnt AS (
+    SELECT subject_id, count(*) AS admission_count 
+    FROM silver_admission
+    GROUP BY subject_id
+)
 
+SELECT p.subject_id, p.gender, p.anchor_age, coalesce(a.admission_count, 0) as admission_count
+FROM silver_patient p LEFT JOIN cnt a ON p.subject_id = a.subject_id;
